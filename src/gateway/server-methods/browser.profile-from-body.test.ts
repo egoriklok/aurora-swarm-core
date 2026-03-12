@@ -112,7 +112,17 @@ describe("browser.request profile selection", () => {
       path: "/profiles/poc",
       body: undefined,
     },
-  ])("blocks persistent profile mutations for %s %s", async ({ method, path, body }) => {
+    {
+      method: "POST",
+      path: "profiles/create",
+      body: { name: "poc", cdpUrl: "http://10.0.0.42:9222" },
+    },
+    {
+      method: "DELETE",
+      path: "profiles/poc",
+      body: undefined,
+    },
+  ])("blocks persistent profile mutations for $method $path", async ({ method, path, body }) => {
     const { respond, nodeRegistry } = await runBrowserRequest({
       method,
       path,

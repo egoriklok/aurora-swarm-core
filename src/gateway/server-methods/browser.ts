@@ -22,10 +22,14 @@ type BrowserRequestParams = {
 
 function normalizeBrowserRequestPath(value: string): string {
   const trimmed = value.trim();
-  if (trimmed.length <= 1) {
+  if (!trimmed) {
     return trimmed;
   }
-  return trimmed.replace(/\/+$/, "");
+  const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  if (withLeadingSlash.length <= 1) {
+    return withLeadingSlash;
+  }
+  return withLeadingSlash.replace(/\/+$/, "");
 }
 
 function isPersistentBrowserProfileMutation(method: string, path: string): boolean {
