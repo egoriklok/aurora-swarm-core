@@ -7,7 +7,21 @@
  * etc.) directly to the stored user message content so the LLM can access
  * them. These blocks are AI-facing only and must never surface in user-visible
  * chat history.
+ *
+ * Also strips the timestamp prefix injected by `injectTimestamp` (e.g.
+ * "[Wed 2026-03-11 23:51 PDT] ") from user messages so the chat UI shows
+ * clean user text without AI-facing metadata.
  */
+
+/**
+ * Matches an injected timestamp envelope at the very start of a message.
+ * Format: [Day YYYY-MM-DD HH:MM TZ] — matches the output of `injectTimestamp`.
+ *
+ * Examples that should match:
+ *   [Wed 2026-03-11 23:51 PDT] hello
+ *   [Thu 2026-03-12 07:00 UTC] message
+ */
+const LEADING_TIMESTAMP_PREFIX_RE = /^\[[A-Za-z]{3} \d{4}-\d{2}-\d{2} \d{2}:\d{2}[^\]]*\] */;
 
 /**
  * Sentinel strings that identify the start of an injected metadata block.
@@ -121,11 +135,21 @@ function stripTrailingUntrustedContextSuffix(lines: string[]): string[] {
  * (fast path — zero allocation).
  */
 export function stripInboundMetadata(text: string): string {
-  if (!text || !SENTINEL_FAST_RE.test(text)) {
+  if (!text) {
     return text;
   }
 
-  const lines = text.split("\n");
+  // Strip leading timestamp prefix injected by `injectTimestamp` (e.g.
+  // "[Wed 2026-03-11 23:51 PDT] hello"). Do this before the sentinel scan
+  // so a pure-timestamp message (no metadata blocks) is handled cheaply.
+  const timestampMatch = text.match(LEADING_TIMESTAMP_PREFIX_RE);
+  const withoutTimestamp = timestampMatch ? text.slice(timestampMatch[0].length) : text;
+
+  if (!SENTINEL_FAST_RE.test(withoutTimestamp)) {
+    return withoutTimestamp;
+  }
+
+  const lines = withoutTimestamp.split("\n");
   const result: string[] = [];
   let inMetaBlock = false;
   let inFencedJson = false;
