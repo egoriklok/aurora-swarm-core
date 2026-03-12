@@ -207,6 +207,10 @@ RUN ln -sf /app/openclaw.mjs /usr/local/bin/openclaw \
  && chmod 755 /app/openclaw.mjs
 
 ENV NODE_ENV=production
+ENV OPENCLAW_GATEWAY_BIND=lan
+ENV OPENCLAW_GATEWAY_PORT=18789
+
+EXPOSE 18789
 
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)
@@ -226,5 +230,5 @@ USER node
 #   - aliases: /health and /ready
 # For external access from host/ingress, override bind to "lan" and set auth.
 HEALTHCHECK --interval=3m --timeout=10s --start-period=15s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:18789/healthz').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-CMD ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
+  CMD ["sh", "-lc", "port=\"${OPENCLAW_GATEWAY_PORT:-${PORT:-18789}}\"; curl -fsS \"http://127.0.0.1:${port}/healthz\" >/dev/null"]
+CMD ["sh", "-lc", "port=\"${OPENCLAW_GATEWAY_PORT:-${PORT:-18789}}\"; exec node dist/index.js gateway --allow-unconfigured --bind \"${OPENCLAW_GATEWAY_BIND:-lan}\" --port \"$port\""]
