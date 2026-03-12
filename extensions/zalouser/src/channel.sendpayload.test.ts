@@ -43,6 +43,7 @@ describe("zalouserPlugin outbound sendPayload", () => {
       channel: {
         text: {
           resolveChunkMode: vi.fn(() => "length"),
+          resolveTextChunkLimit: vi.fn(() => 1200),
         },
       },
     } as never);
@@ -113,7 +114,12 @@ describe("zalouserPlugin outbound sendPayload", () => {
     expect(mockedSend).toHaveBeenCalledWith(
       "987654321",
       text,
-      expect.objectContaining({ isGroup: false, textMode: "markdown", textChunkMode: "length" }),
+      expect.objectContaining({
+        isGroup: false,
+        textMode: "markdown",
+        textChunkMode: "length",
+        textChunkLimit: 1200,
+      }),
     );
     expect(result).toMatchObject({ channel: "zalouser", messageId: "zlu-code" });
   });

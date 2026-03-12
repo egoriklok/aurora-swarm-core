@@ -233,6 +233,47 @@ describe("zalouser send helpers", () => {
     expect(result).toEqual({ ok: true, messageId: "mid-2d-4" });
   });
 
+  it("respects an explicit text chunk limit when splitting formatted markdown", async () => {
+    const text = `**${"a".repeat(1501)}**`;
+    mockSendText
+      .mockResolvedValueOnce({ ok: true, messageId: "mid-2d-5" })
+      .mockResolvedValueOnce({ ok: true, messageId: "mid-2d-6" });
+
+    const result = await sendMessageZalouser("thread-2d-3", text, {
+      profile: "p2d-3",
+      isGroup: false,
+      textMode: "markdown",
+      textChunkLimit: 1200,
+    } as never);
+
+    expect(mockSendText).toHaveBeenCalledTimes(2);
+    expect(mockSendText).toHaveBeenNthCalledWith(
+      1,
+      "thread-2d-3",
+      "a".repeat(1200),
+      expect.objectContaining({
+        profile: "p2d-3",
+        isGroup: false,
+        textMode: "markdown",
+        textChunkLimit: 1200,
+        textStyles: [{ start: 0, len: 1200, st: TextStyle.Bold }],
+      }),
+    );
+    expect(mockSendText).toHaveBeenNthCalledWith(
+      2,
+      "thread-2d-3",
+      "a".repeat(301),
+      expect.objectContaining({
+        profile: "p2d-3",
+        isGroup: false,
+        textMode: "markdown",
+        textChunkLimit: 1200,
+        textStyles: [{ start: 0, len: 301, st: TextStyle.Bold }],
+      }),
+    );
+    expect(result).toEqual({ ok: true, messageId: "mid-2d-6" });
+  });
+
   it("sends overflow markdown captions as follow-up text after the media message", async () => {
     const caption = "\t".repeat(500) + "a".repeat(1500);
     const formatted = parseZalouserTextStyles(caption);

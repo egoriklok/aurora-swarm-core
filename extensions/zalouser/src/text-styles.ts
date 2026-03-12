@@ -103,7 +103,7 @@ export function parseZalouserTextStyles(input: string): { text: string; styles: 
   const allStyles: Style[] = [];
 
   const escapeMap: string[] = [];
-  const lines = input.split("\n");
+  const lines = input.replace(/\r\n?/g, "\n").split("\n");
   const lineStyles: LineStyle[] = [];
   const processedLines: string[] = [];
   let activeFence: ActiveFence | null = null;

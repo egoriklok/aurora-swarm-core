@@ -171,6 +171,7 @@ function installRuntime(params: {
         resolveMarkdownTableMode: vi.fn(() => "code"),
         convertMarkdownTables: vi.fn((text: string) => text),
         resolveChunkMode: vi.fn(() => "length"),
+        resolveTextChunkLimit: vi.fn(() => 1200),
         chunkMarkdownTextWithMode: vi.fn((text: string) => [text]),
       },
     },
@@ -339,6 +340,7 @@ describe("zalouser monitor group mention gating", () => {
         profile: "default",
         textMode: "markdown",
         textChunkMode: "length",
+        textChunkLimit: 1200,
       }),
     );
   });

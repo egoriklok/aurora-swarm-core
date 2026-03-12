@@ -63,6 +63,7 @@ export type ZaloSendOptions = {
   mediaLocalRoots?: readonly string[];
   textMode?: "markdown" | "plain";
   textChunkMode?: "length" | "newline";
+  textChunkLimit?: number;
   textStyles?: Style[];
 };
 

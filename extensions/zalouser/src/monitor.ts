@@ -63,6 +63,8 @@ export type ZalouserMonitorResult = {
   stop: () => void;
 };
 
+const ZALOUSER_TEXT_LIMIT = 2000;
+
 function normalizeZalouserEntry(entry: string): string {
   return entry.replace(/^(zalouser|zlu):/i, "").trim();
 }
@@ -702,6 +704,9 @@ async function deliverZalouserReply(params: {
   const tableMode = params.tableMode ?? "code";
   const text = core.channel.text.convertMarkdownTables(payload.text ?? "", tableMode);
   const chunkMode = core.channel.text.resolveChunkMode(config, "zalouser", accountId);
+  const textChunkLimit = core.channel.text.resolveTextChunkLimit(config, "zalouser", accountId, {
+    fallbackLimit: ZALOUSER_TEXT_LIMIT,
+  });
 
   const sentMedia = await sendMediaWithLeadingCaption({
     mediaUrls: resolveOutboundMediaUrls(payload),
@@ -714,6 +719,7 @@ async function deliverZalouserReply(params: {
         isGroup,
         textMode: "markdown",
         textChunkMode: chunkMode,
+        textChunkLimit,
       });
       statusSink?.({ lastOutboundAt: Date.now() });
     },
@@ -732,6 +738,7 @@ async function deliverZalouserReply(params: {
         isGroup,
         textMode: "markdown",
         textChunkMode: chunkMode,
+        textChunkLimit,
       });
       statusSink?.({ lastOutboundAt: Date.now() });
     } catch (err) {

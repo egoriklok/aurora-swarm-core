@@ -32,10 +32,11 @@ export async function sendMessageZalouser(
     options.textMode === "markdown"
       ? parseZalouserTextStyles(text)
       : { text, styles: options.textStyles };
+  const textChunkLimit = options.textChunkLimit ?? ZALO_TEXT_LIMIT;
   const chunks = splitStyledText(
     prepared.text,
     (prepared.styles?.length ?? 0) > 0 ? prepared.styles : undefined,
-    ZALO_TEXT_LIMIT,
+    textChunkLimit,
     options.textChunkMode,
   );
 

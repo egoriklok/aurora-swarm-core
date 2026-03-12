@@ -28,6 +28,13 @@ describe("parseZalouserTextStyles", () => {
     });
   });
 
+  it("closes fenced code blocks when the input uses CRLF newlines", () => {
+    expect(parseZalouserTextStyles("```\r\n*code*\r\n```\r\n**after**")).toEqual({
+      text: "*code*\nafter",
+      styles: [{ start: 7, len: 5, st: TextStyle.Bold }],
+    });
+  });
+
   it("maps headings, block quotes, and lists into line styles", () => {
     expect(parseZalouserTextStyles(["# Title", "> quoted", "  - nested"].join("\n"))).toEqual({
       text: "Title\nquoted\nnested",
