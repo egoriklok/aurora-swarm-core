@@ -4,6 +4,7 @@ import type {
   GatewayTailscaleConfig,
   loadConfig,
 } from "../config/config.js";
+import { resolveControlUiHostHeaderOriginFallback } from "../config/gateway-control-ui-origins.js";
 import {
   assertGatewayAuthConfigured,
   type ResolvedGatewayAuth,
@@ -118,8 +119,9 @@ export async function resolveGatewayRuntimeConfig(params: {
   const controlUiAllowedOrigins = (params.cfg.gateway?.controlUi?.allowedOrigins ?? [])
     .map((value) => value.trim())
     .filter(Boolean);
-  const dangerouslyAllowHostHeaderOriginFallback =
-    params.cfg.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true;
+  const dangerouslyAllowHostHeaderOriginFallback = resolveControlUiHostHeaderOriginFallback(
+    params.cfg,
+  );
 
   assertGatewayAuthConfigured(resolvedAuth, params.cfg.gateway?.auth);
   if (tailscaleMode === "funnel" && authMode !== "password") {

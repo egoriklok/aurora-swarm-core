@@ -1485,6 +1485,28 @@ description: test skill
     );
   });
 
+  it("flags dangerous host-header origin fallback when enabled via env", async () => {
+    const cfg: OpenClawConfig = {
+      gateway: {
+        bind: "lan",
+        auth: { mode: "token", token: "very-long-browser-token-0123456789" },
+      },
+    };
+
+    const res = await audit(cfg, {
+      env: {
+        OPENCLAW_GATEWAY_CONTROL_UI_DANGEROUSLY_ALLOW_HOST_HEADER_ORIGIN_FALLBACK: "true",
+      } as NodeJS.ProcessEnv,
+    });
+
+    expectFinding(res, "gateway.control_ui.host_header_origin_fallback", "critical");
+    expectNoFinding(res, "gateway.control_ui.allowed_origins_required");
+    const flags = res.findings.find((f) => f.checkId === "config.insecure_or_dangerous_flags");
+    expect(flags?.detail ?? "").toContain(
+      "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true",
+    );
+  });
+
   it("warns when Feishu doc tool is enabled because create can grant requester access", async () => {
     const cfg: OpenClawConfig = {
       channels: {

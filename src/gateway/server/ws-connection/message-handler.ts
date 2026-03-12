@@ -2,6 +2,7 @@ import type { IncomingMessage } from "node:http";
 import os from "node:os";
 import type { WebSocket } from "ws";
 import { loadConfig } from "../../../config/config.js";
+import { resolveControlUiHostHeaderOriginFallback } from "../../../config/gateway-control-ui-origins.js";
 import {
   deriveDeviceIdFromPublicKey,
   normalizeDevicePublicKeyBase64Url,
@@ -498,7 +499,7 @@ export function attachGatewayWsMessageHandler(params: {
         const isWebchat = isWebchatConnect(connectParams);
         if (enforceOriginCheckForAnyClient || isControlUi || isWebchat) {
           const hostHeaderOriginFallbackEnabled =
-            configSnapshot.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true;
+            resolveControlUiHostHeaderOriginFallback(configSnapshot);
           const originCheck = checkBrowserOrigin({
             requestHost,
             origin: requestOrigin,

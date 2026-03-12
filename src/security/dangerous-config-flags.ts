@@ -1,11 +1,15 @@
 import type { OpenClawConfig } from "../config/config.js";
+import { resolveControlUiHostHeaderOriginFallback } from "../config/gateway-control-ui-origins.js";
 
-export function collectEnabledInsecureOrDangerousFlags(cfg: OpenClawConfig): string[] {
+export function collectEnabledInsecureOrDangerousFlags(
+  cfg: OpenClawConfig,
+  env: NodeJS.ProcessEnv = process.env,
+): string[] {
   const enabledFlags: string[] = [];
   if (cfg.gateway?.controlUi?.allowInsecureAuth === true) {
     enabledFlags.push("gateway.controlUi.allowInsecureAuth=true");
   }
-  if (cfg.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true) {
+  if (resolveControlUiHostHeaderOriginFallback(cfg, env)) {
     enabledFlags.push("gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true");
   }
   if (cfg.gateway?.controlUi?.dangerouslyDisableDeviceAuth === true) {

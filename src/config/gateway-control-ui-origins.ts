@@ -3,8 +3,47 @@ import { DEFAULT_GATEWAY_PORT } from "./paths.js";
 
 export type GatewayNonLoopbackBindMode = "lan" | "tailnet" | "custom";
 
+const CONTROL_UI_HOST_HEADER_ORIGIN_FALLBACK_ENV_VARS = [
+  "OPENCLAW_GATEWAY_CONTROL_UI_DANGEROUSLY_ALLOW_HOST_HEADER_ORIGIN_FALLBACK",
+  "CLAWDBOT_GATEWAY_CONTROL_UI_DANGEROUSLY_ALLOW_HOST_HEADER_ORIGIN_FALLBACK",
+] as const;
+
+function parseOptionalBooleanEnv(value: string | undefined): boolean | undefined {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) {
+    return undefined;
+  }
+  if (normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on") {
+    return true;
+  }
+  if (normalized === "0" || normalized === "false" || normalized === "no" || normalized === "off") {
+    return false;
+  }
+  return undefined;
+}
+
 export function isGatewayNonLoopbackBindMode(bind: unknown): bind is GatewayNonLoopbackBindMode {
   return bind === "lan" || bind === "tailnet" || bind === "custom";
+}
+
+export function resolveControlUiHostHeaderOriginFallback(
+  config: Pick<OpenClawConfig, "gateway">,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  const configured = config.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback;
+  if (configured === true) {
+    return true;
+  }
+  if (configured === false) {
+    return false;
+  }
+  for (const envVar of CONTROL_UI_HOST_HEADER_ORIGIN_FALLBACK_ENV_VARS) {
+    const parsed = parseOptionalBooleanEnv(env[envVar]);
+    if (parsed !== undefined) {
+      return parsed;
+    }
+  }
+  return false;
 }
 
 export function hasConfiguredControlUiAllowedOrigins(params: {
@@ -45,7 +84,7 @@ export function buildDefaultControlUiAllowedOrigins(params: {
 
 export function ensureControlUiAllowedOriginsForNonLoopbackBind(
   config: OpenClawConfig,
-  opts?: { defaultPort?: number; requireControlUiEnabled?: boolean },
+  opts?: { defaultPort?: number; requireControlUiEnabled?: boolean; env?: NodeJS.ProcessEnv },
 ): {
   config: OpenClawConfig;
   seededOrigins: string[] | null;
@@ -61,8 +100,10 @@ export function ensureControlUiAllowedOriginsForNonLoopbackBind(
   if (
     hasConfiguredControlUiAllowedOrigins({
       allowedOrigins: config.gateway?.controlUi?.allowedOrigins,
-      dangerouslyAllowHostHeaderOriginFallback:
-        config.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback,
+      dangerouslyAllowHostHeaderOriginFallback: resolveControlUiHostHeaderOriginFallback(
+        config,
+        opts?.env,
+      ),
     })
   ) {
     return { config, seededOrigins: null, bind };

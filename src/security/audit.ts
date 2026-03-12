@@ -7,6 +7,7 @@ import { resolveBrowserControlAuth } from "../browser/control-auth.js";
 import { listChannelPlugins } from "../channels/plugins/index.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import type { ConfigFileSnapshot, OpenClawConfig } from "../config/config.js";
+import { resolveControlUiHostHeaderOriginFallback } from "../config/gateway-control-ui-origins.js";
 import { resolveConfigPath, resolveStateDir } from "../config/paths.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";
 import { resolveGatewayAuth } from "../gateway/auth.js";
@@ -349,8 +350,10 @@ function collectGatewayConfigFindings(
   const controlUiAllowedOrigins = (cfg.gateway?.controlUi?.allowedOrigins ?? [])
     .map((value) => value.trim())
     .filter(Boolean);
-  const dangerouslyAllowHostHeaderOriginFallback =
-    cfg.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true;
+  const dangerouslyAllowHostHeaderOriginFallback = resolveControlUiHostHeaderOriginFallback(
+    cfg,
+    env,
+  );
   const trustedProxies = Array.isArray(cfg.gateway?.trustedProxies)
     ? cfg.gateway.trustedProxies
     : [];
@@ -588,7 +591,7 @@ function collectGatewayConfigFindings(
     });
   }
 
-  const enabledDangerousFlags = collectEnabledInsecureOrDangerousFlags(cfg);
+  const enabledDangerousFlags = collectEnabledInsecureOrDangerousFlags(cfg, env);
   if (enabledDangerousFlags.length > 0) {
     findings.push({
       checkId: "config.insecure_or_dangerous_flags",

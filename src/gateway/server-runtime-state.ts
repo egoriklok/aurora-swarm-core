@@ -3,6 +3,7 @@ import { WebSocketServer } from "ws";
 import { CANVAS_HOST_PATH } from "../canvas-host/a2ui.js";
 import { type CanvasHostHandler, createCanvasHostHandler } from "../canvas-host/server.js";
 import type { CliDeps } from "../cli/deps.js";
+import { resolveControlUiHostHeaderOriginFallback } from "../config/gateway-control-ui-origins.js";
 import type { createSubsystemLogger } from "../logging/subsystem.js";
 import type { PluginRegistry } from "../plugins/registry.js";
 import type { RuntimeEnv } from "../runtime.js";
@@ -133,7 +134,7 @@ export async function createGatewayRuntimeState(params: {
         "Ensure authentication is configured before exposing to public networks.",
     );
   }
-  if (params.cfg.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true) {
+  if (resolveControlUiHostHeaderOriginFallback(params.cfg)) {
     params.log.warn(
       "⚠️  gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true is enabled. " +
         "Host-header origin fallback weakens origin checks and should only be used as break-glass.",
