@@ -22,8 +22,8 @@ RUN apk add --no-cache \
 # Install openclaw engine globally (pinned for reproducible builds — sentinel bumps via AUR workflow)
 RUN npm install -g openclaw@2026.3.13
 
-# Create config directory for session hydration
-RUN mkdir -p /home/node/.config/openclaw
+# Create config directory for session hydration and grant ownership to node user
+RUN mkdir -p /home/node/.config/openclaw && chown -R node:node /home/node/.config
 
 WORKDIR /app
 
