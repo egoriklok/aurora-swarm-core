@@ -13,7 +13,11 @@ FROM node:20-alpine
 # Install runtime dependencies
 RUN apk add --no-cache \
     ca-certificates \
-    tini
+    tini \
+    git \
+    python3 \
+    make \
+    g++
 
 # Install openclaw engine globally (pinned for reproducible builds — sentinel bumps via AUR workflow)
 RUN npm install -g openclaw@2026.3.13
