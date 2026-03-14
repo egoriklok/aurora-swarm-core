@@ -34,12 +34,11 @@ FROM base AS production
 
 COPY --from=deps --chown=node:node /app/node_modules ./node_modules
 
-# Install antigravity-gateway engine
-RUN npm install -g antigravity-gateway@latest
+# Install openclaw engine
+RUN npm install -g openclaw@latest
 
-# Create config directories
-RUN mkdir -p /home/node/.config/antigravity-gateway && \
-    mkdir -p /home/node/.config/openclaw
+# Create config directory
+RUN mkdir -p /home/node/.config/openclaw
 
 # =====================================================
 # Session Hydration Entrypoint (AUR-9)
@@ -55,12 +54,12 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 EXPOSE 8080
 
-# tini → entrypoint.sh (session hydration) → agw
+# tini → entrypoint.sh (session hydration) → openclaw
 ENTRYPOINT ["/sbin/tini", "--", "/app/entrypoint.sh"]
-CMD ["agw", "start", "--port", "8080"]
+CMD ["openclaw", "start", "--port", "8080"]
 
 LABEL maintainer="Egor Loktionov <jamennbs1@gmail.com>"
-LABEL description="AuroraSwarm Node Beta — Cloud Nervous System (Antigravity Gateway)"
+LABEL description="AuroraSwarm Node Beta — Cloud Nervous System (openclaw engine)"
 LABEL version="1.0.0"
 LABEL node="beta"
 LABEL auth="ChatGPT Plus OAuth via OPENCLAW_SESSION_JSON headless injection (AUR-9)"
