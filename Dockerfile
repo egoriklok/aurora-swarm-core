@@ -28,13 +28,20 @@ RUN mkdir -p /home/node/.config/openclaw
 WORKDIR /app
 
 # =====================================================
-# Session Hydration Entrypoint (AUR-9)
+# Session Hydration & Cellular Memory (AUR-9 & AUR-30)
 # =====================================================
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh && \
-    chown node:node /app/entrypoint.sh
 
-RUN chown -R node:node /app
+# Инъекция Генетической Памяти и Щита в кристалл
+COPY --chown=node:node workspace /app/workspace
+COPY --chown=node:node .agent_tools /app/.agent_tools
+COPY --chown=node:node GEMINI.md /app/GEMINI.md
+COPY --chown=node:node CLAUDE.md /app/CLAUDE.md
+
+RUN chmod +x /app/entrypoint.sh && \
+    chown node:node /app/entrypoint.sh && \
+    chown -R node:node /app
+
 USER node
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
@@ -42,12 +49,13 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 EXPOSE 8080
 
-# tini → entrypoint.sh (session hydration) → openclaw
+# tini → entrypoint.sh (session hydration) → openclaw (с привязкой к памяти)
 ENTRYPOINT ["/sbin/tini", "--", "/app/entrypoint.sh"]
-CMD ["openclaw", "start", "--port", "8080"]
+CMD ["openclaw", "start", "--port", "8080", "--workspace", "/app/workspace"]
 
 LABEL maintainer="Egor Loktionov <jamennbs1@gmail.com>"
 LABEL description="AuroraSwarm Node Beta — Cloud Nervous System (openclaw engine)"
 LABEL version="1.1.0"
 LABEL node="beta"
 LABEL auth="ChatGPT Plus OAuth via OPENCLAW_SESSION_JSON headless injection (AUR-9)"
+LABEL memory="GitOps Cellular Workspace Mounted (AUR-30)"
