@@ -44,13 +44,13 @@ RUN chmod +x /app/entrypoint.sh && \
 USER node
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); });"
+    CMD node -e "require('http').get('http://localhost:18789/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); });"
 
-EXPOSE 8080
+EXPOSE 18789
 
 # tini → entrypoint.sh (session hydration) → openclaw (с привязкой к памяти)
 ENTRYPOINT ["/sbin/tini", "--", "/app/entrypoint.sh"]
-CMD ["openclaw", "start", "--port", "8080", "--workspace", "/app/workspace"]
+CMD ["openclaw", "start", "--port", "18789", "--workspace", "/app/workspace"]
 
 LABEL maintainer="Egor Loktionov <jamennbs1@gmail.com>"
 LABEL description="AuroraSwarm Node Beta — Cloud Nervous System (openclaw engine)"
