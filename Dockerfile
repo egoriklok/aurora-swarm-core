@@ -36,7 +36,6 @@ COPY entrypoint.sh /app/entrypoint.sh
 COPY --chown=node:node workspace /app/workspace
 COPY --chown=node:node .agent_tools /app/.agent_tools
 COPY --chown=node:node GEMINI.md /app/GEMINI.md
-COPY --chown=node:node CLAUDE.md /app/CLAUDE.md
 
 RUN chmod +x /app/entrypoint.sh && \
     chown node:node /app/entrypoint.sh && \
