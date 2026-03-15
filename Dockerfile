@@ -5,7 +5,7 @@
 # Purpose:  Deploy the OpenClaw engine on ClawCloud Run
 # Mission:  Zero-fiat ChatGPT Plus OAuth inference, no PC dependency
 # Auth:     OPENCLAW_SESSION_JSON injected at boot via entrypoint.sh
-# Ref:      AUR-36 - Official Gateway Host Override & Memory Restoration
+# Ref:      AUR-37 - Absolute CLI Bind Override (Surgical Recon)
 # =====================================================
 
 FROM node:22-alpine
@@ -42,15 +42,11 @@ RUN chmod +x /app/entrypoint.sh && \
     chown -R node:node /app
 
 USER node
-
-# Official OpenClaw variables to cure cloud agoraphobia and bind to 0.0.0.0
-ENV OPENCLAW_GATEWAY_BIND=lan
-ENV OPENCLAW_GATEWAY_HOST=0.0.0.0
 EXPOSE 18789
 
-# tini → entrypoint.sh (session hydration) → openclaw (с привязкой к памяти и обходом setup)
+# tini → entrypoint.sh → openclaw (явная привязка к lan через CLI-аргумент)
 ENTRYPOINT ["/sbin/tini", "--", "/app/entrypoint.sh"]
-CMD ["openclaw", "gateway", "--port", "18789", "--allow-unconfigured"]
+CMD ["openclaw", "gateway", "--port", "18789", "--bind", "lan", "--allow-unconfigured"]
 
 # =====================================================
 # Node Identity & Genetic Markers
