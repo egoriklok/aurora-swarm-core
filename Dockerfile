@@ -51,7 +51,7 @@ EXPOSE 18789
 # Без заглушек. Без флага --allow-unconfigured. 
 # Ядро читает свой Золотой Конфиг и открывается облаку.
 ENTRYPOINT ["/sbin/tini", "--", "/app/entrypoint.sh"]
-CMD ["openclaw", "gateway", "--port", "18789", "--bind", "lan", "--auth", "token"]
+CMD ["openclaw", "gateway", "--port", "18789", "--bind", "lan", "--auth", "token", "--allow-unconfigured"]
 
 # =====================================================
 # Node Identity & Genetic Markers
