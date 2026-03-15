@@ -5,12 +5,12 @@
 # Purpose:  Deploy the OpenClaw engine on ClawCloud Run
 # Mission:  Zero-fiat ChatGPT Plus OAuth inference, no PC dependency
 # Auth:     OPENCLAW_SESSION_JSON injected at boot via entrypoint.sh
-# Ref:      AUR-37 - Absolute CLI Bind Override (Surgical Recon)
+# Ref:      AUR-39 - Absolute Synthesis: Swarm Identity & Network Sovereignty
 # =====================================================
 
 FROM node:22-alpine
 
-# Install runtime dependencies
+# [1] Инфраструктурный Базис (Runtime Dependencies)
 RUN apk add --no-cache \
     ca-certificates \
     tini \
@@ -19,7 +19,8 @@ RUN apk add --no-cache \
     make \
     g++
 
-# Install openclaw engine globally (pinned for reproducible builds)
+# [2] Ядро Роя (Engine Installation)
+# Pinned for reproducible builds — sentinel bumps via AUR workflow
 RUN npm install -g openclaw@2026.3.13
 
 # Create config directory for session hydration and grant ownership to node user
@@ -44,9 +45,12 @@ RUN chmod +x /app/entrypoint.sh && \
 USER node
 EXPOSE 18789
 
-# tini → entrypoint.sh → openclaw (явная привязка к lan через CLI-аргумент)
+# =====================================================
+# The Sovereign Transport Layer
+# =====================================================
+# tini → entrypoint.sh (hydration) → openclaw (guardrail override: bind lan + auth none)
 ENTRYPOINT ["/sbin/tini", "--", "/app/entrypoint.sh"]
-CMD ["openclaw", "gateway", "--port", "18789", "--bind", "lan", "--allow-unconfigured"]
+CMD ["openclaw", "gateway", "--port", "18789", "--bind", "lan", "--auth", "none", "--allow-unconfigured"]
 
 # =====================================================
 # Node Identity & Genetic Markers
