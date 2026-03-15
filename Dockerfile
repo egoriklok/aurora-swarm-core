@@ -32,7 +32,8 @@ WORKDIR /app
 # Инъекция Идеальной Памяти (Золотой Конфиг)
 # =====================================================
 COPY --chown=node:node openclaw.json /home/node/.openclaw/openclaw.json
-RUN mkdir -p /home/node/.openclaw/agents/main/agent
+RUN mkdir -p /home/node/.openclaw/agents/main/agent && \
+    chown -R node:node /home/node/.openclaw/agents
 COPY --chown=node:node auth-profiles.json /home/node/.openclaw/agents/main/agent/auth-profiles.json
 COPY entrypoint.sh /app/entrypoint.sh
 COPY --chown=node:node workspace /app/workspace
