@@ -1,19 +1,21 @@
 ﻿{
-  "agents": {
-    "defaults": {
-      "workspace": "/app/workspace"
+    "agents": {
+        "defaults": {
+            "workspace": "/app/workspace"
+        }
+    },
+    "commands": {
+        "native": "auto",
+        "nativeSkills": "auto",
+        "restart": true,
+        "ownerDisplay": "raw"
+    },
+    "gateway": {
+        "mode": "remote",
+        "controlUi": {
+            "allowedOrigins": [
+                "*"
+            ]
+        }
     }
-  },
-  "commands": {
-    "native": "auto",
-    "nativeSkills": "auto",
-    "restart": true,
-    "ownerDisplay": "raw"
-  },
-  "gateway": {
-    "mode": "remote",
-    "controlUi": {
-      "allowedOrigins": ["*"]
-    }
-  }
 }
