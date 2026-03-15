@@ -1,3 +1,6 @@
 {
-  "chatgpt": {}
+  "openai-codex:default": {
+    "provider": "openai-codex",
+    "mode": "oauth"
+  }
 }
