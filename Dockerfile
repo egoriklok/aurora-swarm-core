@@ -50,7 +50,7 @@ EXPOSE 18789
 
 # tini → entrypoint.sh (session hydration) → openclaw (с привязкой к памяти)
 ENTRYPOINT ["/sbin/tini", "--", "/app/entrypoint.sh"]
-CMD ["openclaw", "start", "--port", "18789", "--workspace", "/app/workspace"]
+CMD ["openclaw", "gateway", "--port", "18789", "--workspace", "/app/workspace"]
 
 LABEL maintainer="Egor Loktionov <jamennbs1@gmail.com>"
 LABEL description="AuroraSwarm Node Beta — Cloud Nervous System (openclaw engine)"
