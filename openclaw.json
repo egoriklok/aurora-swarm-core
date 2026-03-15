@@ -12,6 +12,9 @@
     },
     "gateway": {
         "mode": "remote",
+        "remote": {
+            "url": "https://leqjljlxucpz.eu-central-1.clawcloudrun.com"
+        },
         "controlUi": {
             "allowedOrigins": [
                 "*"
