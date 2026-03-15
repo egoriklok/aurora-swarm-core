@@ -1,10 +1,7 @@
 {
     "agents": {
         "defaults": {
-            "workspace": "/app/workspace",
-            "model": {
-                "primary": "azure-openai-responses/gpt-5.4"
-            }
+            "workspace": "/app/workspace"
         }
     },
     "commands": {
