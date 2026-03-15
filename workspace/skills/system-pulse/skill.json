@@ -1,0 +1,8 @@
+{
+  "name": "system_pulse",
+  "description": "Performs a System Pulse check. Returns timestamp, vitality message, and environment version.",
+  "parameters": {
+    "type": "object",
+    "properties": {}
+  }
+}
