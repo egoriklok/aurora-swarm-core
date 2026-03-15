@@ -11,7 +11,7 @@
         "ownerDisplay": "raw"
     },
     "gateway": {
-        "mode": "lan",
+        "mode": "local",
         "controlUi": {
             "allowedOrigins": [
                 "*"
