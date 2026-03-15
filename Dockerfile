@@ -47,7 +47,7 @@ EXPOSE 18789
 
 # tini → entrypoint.sh → openclaw (с привязкой к памяти и обходом setup)
 ENTRYPOINT ["/sbin/tini", "--", "/app/entrypoint.sh"]
-CMD ["openclaw", "gateway", "--port", "18789", "--allow-unconfigured"]
+CMD ["openclaw", "gateway", "--port", "18789", "--host", "0.0.0.0", "--allow-unconfigured"]
 
 LABEL maintainer="Egor Loktionov <jamennbs1@gmail.com>"
 LABEL description="AuroraSwarm Node Beta — Cloud Nervous System"
