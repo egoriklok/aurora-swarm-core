@@ -46,6 +46,8 @@ USER node
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:18789/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); });"
 
+# Force Node.js and frameworks to bind to all network interfaces
+ENV HOST=0.0.0.0
 EXPOSE 18789
 
 # tini → entrypoint.sh (session hydration) → openclaw (с привязкой к памяти)
