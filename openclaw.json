@@ -11,7 +11,7 @@
         "ownerDisplay": "raw"
     },
     "gateway": {
-        "mode": "local",
+        "mode": "remote",
         "controlUi": {
             "allowedOrigins": [
                 "*"
