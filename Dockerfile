@@ -5,7 +5,7 @@
 # Purpose:  Deploy the OpenClaw engine on ClawCloud Run
 # Mission:  Zero-fiat ChatGPT Plus OAuth inference, no PC dependency
 # Auth:     OPENCLAW_SESSION_JSON injected at boot via entrypoint.sh
-# Ref:      AUR-28 - Hotfix: Streamlined single-stage build (npm ci removed)
+# Ref:      AUR-32 - Final Infrastructure Synthesis (Strict Schema Bind)
 # =====================================================
 
 FROM node:22-alpine
@@ -19,7 +19,7 @@ RUN apk add --no-cache \
     make \
     g++
 
-# Install openclaw engine globally (pinned for reproducible builds — sentinel bumps via AUR workflow)
+# Install openclaw engine globally (pinned for reproducible builds)
 RUN npm install -g openclaw@2026.3.13
 
 # Create config directory for session hydration and grant ownership to node user
@@ -43,11 +43,8 @@ RUN chmod +x /app/entrypoint.sh && \
 
 USER node
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:18789/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); });"
-
-# Force Node.js and frameworks to bind to all network interfaces
-ENV HOST=0.0.0.0
+# Official OpenClaw bind mode to cure cloud agoraphobia and unblock Envoy proxy
+ENV OPENCLAW_GATEWAY_BIND=lan
 EXPOSE 18789
 
 # tini → entrypoint.sh (session hydration) → openclaw (с привязкой к памяти)
