@@ -1,5 +1,10 @@
 .git
 .worktrees
+.agent
+.agents
+.pi
+.vector-test
+.vscode
 .bun-cache
 .bun
 .tmp
@@ -30,6 +35,9 @@ coverage
 *.log
 tmp
 **/tmp
+openclaw-data
+openclaw-workspace
+postgres-data
 
 # build artifacts
 dist

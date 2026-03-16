@@ -10,8 +10,8 @@ services:
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_CONFIG_DIR:-./openclaw-data}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-./openclaw-workspace}:/home/node/.openclaw/workspace
       ## Uncomment the lines below to enable sandbox isolation
       ## (agents.defaults.sandbox). Requires Docker CLI in the image
       ## (build with --build-arg OPENCLAW_INSTALL_DOCKER_CLI=1) or use
@@ -66,11 +66,31 @@ services:
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_CONFIG_DIR:-./openclaw-data}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-./openclaw-workspace}:/home/node/.openclaw/workspace
     stdin_open: true
     tty: true
     init: true
     entrypoint: ["node", "dist/index.js"]
     depends_on:
       - openclaw-gateway
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-openclaw}
+      POSTGRES_USER: ${POSTGRES_USER:-openclaw}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openclaw}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
