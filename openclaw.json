@@ -13,6 +13,26 @@
     "restart": true,
     "ownerDisplay": "raw"
   },
+  "plugins": {
+    "slots": {
+      "memory": "memory-lancedb"
+    },
+    "entries": {
+      "memory-lancedb": {
+        "enabled": true,
+        "config": {
+          "embedding": {
+            "apiKey": "${OPENCLAW_MEMORY_EMBEDDINGS_API_KEY}",
+            "model": "text-embedding-3-small"
+          },
+          "dbPath": "~/.openclaw/memory/lancedb",
+          "autoRecall": true,
+          "autoCapture": true,
+          "captureMaxChars": 500
+        }
+      }
+    }
+  },
   "gateway": {
     "mode": "local"
   }
