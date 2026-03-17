@@ -1,0 +1,144 @@
+# =============================================================================
+# Vanguard Orbital Deploy
+#
+# Required GitHub Secrets:
+# - TAILSCALE_AUTHKEY
+# - VPS_SSH_PRIVATE_KEY
+#
+# Required GitHub Variables:
+# - VANGUARD_TAILSCALE_IP=100.86.37.86
+# - VANGUARD_SSH_USER=root
+# - VANGUARD_DEPLOY_PATH=/opt/aurora-swarm-core
+# - VANGUARD_DROP_PATH=/tmp/orbital-drop
+# - VANGUARD_CANONICAL_IMAGE_TAG=openclaw:nostrfix-patched
+#
+# Recommended SSH host verification:
+# - Preferred: VPS_SSH_KNOWN_HOSTS secret with a precomputed known_hosts entry
+# - Fallback: ssh-keyscan against the Tailscale IP if VPS_SSH_KNOWN_HOSTS is absent
+#   This is less strict than pinning a known host key and should be treated as a
+#   temporary bootstrap path only.
+# =============================================================================
+name: Vanguard Orbital Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: vanguard-deploy-main
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build payload and orbital-drop to Vanguard
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ vars.VANGUARD_TAILSCALE_IP }}
+      DEPLOY_USER: ${{ vars.VANGUARD_SSH_USER }}
+      DEPLOY_PATH: ${{ vars.VANGUARD_DEPLOY_PATH }}
+      DROP_PATH: ${{ vars.VANGUARD_DROP_PATH }}
+      IMAGE_TAG_IMMUTABLE: openclaw:orbital-${{ github.sha }}
+      IMAGE_TAG_CANONICAL: ${{ vars.VANGUARD_CANONICAL_IMAGE_TAG }}
+      IMAGE_TARBALL: openclaw-orbital-${{ github.sha }}.tar.gz
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Join Tailnet
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          ping: ${{ vars.VANGUARD_TAILSCALE_IP }}
+
+      - name: Build deploy image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          load: true
+          provenance: false
+          tags: |
+            ${{ env.IMAGE_TAG_IMMUTABLE }}
+            ${{ env.IMAGE_TAG_CANONICAL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Save compressed orbital payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker image inspect "${IMAGE_TAG_IMMUTABLE}" >/dev/null
+          docker image inspect "${IMAGE_TAG_CANONICAL}" >/dev/null
+          docker save "${IMAGE_TAG_IMMUTABLE}" "${IMAGE_TAG_CANONICAL}" | gzip -1 > "${IMAGE_TARBALL}"
+          ls -lh "${IMAGE_TARBALL}"
+
+      - name: Configure SSH client
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p "${HOME}/.ssh"
+          chmod 700 "${HOME}/.ssh"
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > "${HOME}/.ssh/id_ed25519"
+          chmod 600 "${HOME}/.ssh/id_ed25519"
+          touch "${HOME}/.ssh/known_hosts"
+          chmod 644 "${HOME}/.ssh/known_hosts"
+
+          if [ -n "${SSH_KNOWN_HOSTS}" ]; then
+            printf '%s\n' "${SSH_KNOWN_HOSTS}" > "${HOME}/.ssh/known_hosts"
+          else
+            echo "::warning::VPS_SSH_KNOWN_HOSTS secret is not configured; falling back to ssh-keyscan for bootstrap trust."
+            ssh-keyscan -H "${DEPLOY_HOST}" >> "${HOME}/.ssh/known_hosts"
+          fi
+
+      - name: Pre-create remote drop directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "${HOME}/.ssh/id_ed25519" \
+            -o StrictHostKeyChecking=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "mkdir -p '${DROP_PATH}'"
+
+      - name: Transfer orbital payload over SCP
+        shell: bash
+        run: |
+          set -euo pipefail
+          scp -i "${HOME}/.ssh/id_ed25519" \
+            -o StrictHostKeyChecking=yes \
+            "${IMAGE_TARBALL}" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:${DROP_PATH}/"
+
+      - name: Load image and restart remote stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "${HOME}/.ssh/id_ed25519" \
+            -o StrictHostKeyChecking=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" <<EOF
+          set -euo pipefail
+          cd "${DROP_PATH}"
+          gunzip -c "${IMAGE_TARBALL}" | docker load
+          docker image inspect "${IMAGE_TAG_CANONICAL}" >/dev/null
+          cd "${DEPLOY_PATH}"
+          docker compose up -d
+          docker compose ps
+          rm -f "${DROP_PATH}/${IMAGE_TARBALL}"
+          EOF
+
+      - name: Remove local payload
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "${IMAGE_TARBALL}"
